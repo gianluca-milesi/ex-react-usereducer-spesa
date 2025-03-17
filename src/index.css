@@ -1,12 +1,3 @@
-h1 {
-    margin: 0;
-}
-
-.products-list,
-.cart-list {
-    margin: 0;
-}
-
 .list-body {
     display: flex;
     align-items: center;

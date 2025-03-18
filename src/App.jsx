@@ -25,10 +25,15 @@ function App() {
   }
 
   function updateProductQuantity(name, quantity) {
-    setAddedProducts(curr => curr.map(p => p.name === name ? { ...p, quantity } : p))
+    if (quantity < 1 || isNaN(quantity)) {
+      return
+    } else {
+      setAddedProducts(curr => curr.map(p => p.name === name ? { ...p, quantity } : p))
+    }
   }
 
   const totalPrice = addedProducts.reduce((acc, p) => acc + (p.price * p.quantity), 0)
+
 
   return (
     <>
@@ -56,7 +61,7 @@ function App() {
                 <div className="list-body">
                   <h4>{p.name}</h4>
                   <p>{p.price.toFixed(2)}€</p>
-                  <p>Quantità: {p.quantity}</p>
+                  <input type="number" value={p.quantity} onChange={e => updateProductQuantity(p.name, parseInt(e.target.value))} />
                 </div>
                 <button onClick={() => removeFromCart(p)}>Rimuovi</button>
               </li>

@@ -1,4 +1,29 @@
-import { useState } from "react"
+import { useReducer, useState } from "react"
+
+
+function cartReducer(addedProducts, action) {
+  switch (action.type) {
+    case 'ADD_ITEM':
+      const addedProduct = addedProducts.find(p => p.name === action.payload.name)
+      if (addedProduct) {
+        action.payload.quantity = addedProduct.quantity + 1
+      } else {
+        return [...addedProducts, { ...action.payload, quantity: 1 }]
+      }
+    case 'UPDATE_QUANTITY':
+      if (action.payload.quantity < 1 || isNaN(action.payload.quantity)) {
+        return addedProducts
+      } else {
+        return addedProducts.map(p => p.name === action.payload.name ? { ...p, quantity: action.payload.quantity } : p)
+      }
+
+    case 'REMOVE_ITEM':
+      return addedProducts.filter(p => p.name !== action.payload)
+    default:
+      return addedProducts;
+  }
+}
+
 
 function App() {
 
@@ -9,29 +34,7 @@ function App() {
     { name: 'Pasta', price: 0.7 },
   ]
 
-  const [addedProducts, setAddedProducts] = useState([])
-
-  function addToCart(product) {
-    const addedProduct = addedProducts.find(p => p.name === product.name)
-    if (addedProduct) {
-      updateProductQuantity(addedProduct.name, addedProduct.quantity + 1)
-    } else {
-      setAddedProducts(curr => [...curr, { ...product, quantity: 1 }])
-    }
-  }
-
-  function removeFromCart(product) {
-    setAddedProducts(curr => curr.filter(p => p.name !== product.name))
-  }
-
-  function updateProductQuantity(name, quantity) {
-    if (quantity < 1 || isNaN(quantity)) {
-      return
-    } else {
-      setAddedProducts(curr => curr.map(p => p.name === name ? { ...p, quantity } : p))
-    }
-  }
-
+  const [addedProducts, dispatchCart] = useReducer(cartReducer, [])
   const totalPrice = addedProducts.reduce((acc, p) => acc + (p.price * p.quantity), 0)
 
 
@@ -46,7 +49,7 @@ function App() {
                 <h3>{p.name}</h3>
                 <p>{p.price.toFixed(2)}€</p>
               </div>
-              <button onClick={() => addToCart(p)}>Aggiungi al carrello</button>
+              <button onClick={() => dispatchCart({ type: "ADD_ITEM", payload: p })}>Aggiungi al carrello</button>
             </li>
           ))}
         </ul>
@@ -61,9 +64,14 @@ function App() {
                 <div className="list-body">
                   <h4>{p.name}</h4>
                   <p>{p.price.toFixed(2)}€</p>
-                  <input type="number" value={p.quantity} onChange={e => updateProductQuantity(p.name, parseInt(e.target.value))} />
+                  <input type="number"
+                    value={p.quantity}
+                    onChange={e => dispatchCart({
+                      type: "UPDATE_QUANTITY",
+                      payload: { name: p.name, quantity: parseInt(e.target.value) }
+                    })} />
                 </div>
-                <button onClick={() => removeFromCart(p)}>Rimuovi</button>
+                <button onClick={() => dispatchCart({ type: "REMOVE_ITEM", payload: p.name })}>Rimuovi</button>
               </li>
             ))}
           </ul>
